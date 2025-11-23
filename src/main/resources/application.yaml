@@ -1,0 +1,48 @@
+server:
+  port: 8081
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      security:
+        protocol: PLAINTEXT
+    consumer:
+      bootstrap-servers: localhost:9092
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer-class-config: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: org.game.dto
+      security:
+        protocol: PLAINTEXT
+  liquibase:
+    default-schema: public
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: postgres
+    password: postgres
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    jpa:
+      hibernate:
+        ddl-auto: update
+        show-sql: false
+token:
+  signing:
+    key: 122B6C396F39E6A8754DC7428433EF1F7B76AA135C417B842E0BA83B67
+springdoc:
+  api-docs:
+    path: /api-docs
+    operationsSorter: alpha
+    tagsSorter: alpha
+    displayRequestDuration: true
+swagger-ui:
+  url: "http://localhost:8081/swagger-ui/index.html"
