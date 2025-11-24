@@ -1,5 +1,12 @@
 server:
   port: 8081
+feign:
+  client:
+    config:
+      auth:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
 spring:
   kafka:
     producer:
