@@ -105,6 +105,9 @@ public class LabirinthServiceImpl implements LabirinthService {
         //Преобразование врагов
         modifyEnemies(userId);
 
+        //Преобразование игрока
+        modifyPlayer(userId);
+
         int[][] array = new int[10][20];
         List<Landscape> landscapes = landscapeRepository.findAllByUserId(userId);
         for (Landscape l : landscapes) {
@@ -207,13 +210,16 @@ public class LabirinthServiceImpl implements LabirinthService {
                                     Optional<Landscape> ls = landscapeRepository.findByUserIdAndIAndJ(userId, i - k, j);
                                     if (ls.isPresent()) {
                                         if (
-                                                LandscapeType.WALL.equals(ls.get().getType()) ||
-                                                        LandscapeType.BOMB.equals(ls.get().getType()) ||
-                                                        LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
-                                                        LandscapeType.BLACKGRASS.equals(ls.get().getType())
+                                                LandscapeType.BOMB.equals(ls.get().getType()) ||
+                                                LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
+                                                LandscapeType.BLACKGRASS.equals(ls.get().getType())
                                         ) {
                                             ls.get().setType(LandscapeType.EXPLOSION);
                                             landscapeRepository.save(ls.get());
+                                        } else if (LandscapeType.WALL.equals(ls.get().getType())) {
+                                            ls.get().setType(LandscapeType.EXPLOSION);
+                                            landscapeRepository.save(ls.get());
+                                            break;
                                         } else {
                                             break;
                                         }
@@ -226,13 +232,16 @@ public class LabirinthServiceImpl implements LabirinthService {
                                     Optional<Landscape> ls = landscapeRepository.findByUserIdAndIAndJ(userId, i + k, j);
                                     if (ls.isPresent()) {
                                         if (
-                                                LandscapeType.WALL.equals(ls.get().getType()) ||
-                                                        LandscapeType.BOMB.equals(ls.get().getType()) ||
-                                                        LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
-                                                        LandscapeType.BLACKGRASS.equals(ls.get().getType())
+                                                LandscapeType.BOMB.equals(ls.get().getType()) ||
+                                                LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
+                                                LandscapeType.BLACKGRASS.equals(ls.get().getType())
                                         ) {
                                             ls.get().setType(LandscapeType.EXPLOSION);
                                             landscapeRepository.save(ls.get());
+                                        } if (LandscapeType.WALL.equals(ls.get().getType())) {
+                                            ls.get().setType(LandscapeType.EXPLOSION);
+                                            landscapeRepository.save(ls.get());
+                                            break;
                                         } else {
                                             break;
                                         }
@@ -245,13 +254,16 @@ public class LabirinthServiceImpl implements LabirinthService {
                                     Optional<Landscape> ls = landscapeRepository.findByUserIdAndIAndJ(userId, i, j - k);
                                     if (ls.isPresent()) {
                                         if (
-                                                LandscapeType.WALL.equals(ls.get().getType()) ||
-                                                        LandscapeType.BOMB.equals(ls.get().getType()) ||
-                                                        LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
-                                                        LandscapeType.BLACKGRASS.equals(ls.get().getType())
+                                                LandscapeType.BOMB.equals(ls.get().getType()) ||
+                                                LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
+                                                LandscapeType.BLACKGRASS.equals(ls.get().getType())
                                         ) {
                                             ls.get().setType(LandscapeType.EXPLOSION);
                                             landscapeRepository.save(ls.get());
+                                        } else if (LandscapeType.WALL.equals(ls.get().getType())) {
+                                            ls.get().setType(LandscapeType.EXPLOSION);
+                                            landscapeRepository.save(ls.get());
+                                            break;
                                         } else {
                                             break;
                                         }
@@ -264,13 +276,16 @@ public class LabirinthServiceImpl implements LabirinthService {
                                     Optional<Landscape> ls = landscapeRepository.findByUserIdAndIAndJ(userId, i, j + k);
                                     if (ls.isPresent()) {
                                         if (
-                                                LandscapeType.WALL.equals(ls.get().getType()) ||
-                                                        LandscapeType.BOMB.equals(ls.get().getType()) ||
-                                                        LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
-                                                        LandscapeType.BLACKGRASS.equals(ls.get().getType())
+                                                LandscapeType.BOMB.equals(ls.get().getType()) ||
+                                                LandscapeType.GREENGRASS.equals(ls.get().getType()) ||
+                                                LandscapeType.BLACKGRASS.equals(ls.get().getType())
                                         ) {
                                             ls.get().setType(LandscapeType.EXPLOSION);
                                             landscapeRepository.save(ls.get());
+                                        } else if (LandscapeType.WALL.equals(ls.get().getType())) {
+                                            ls.get().setType(LandscapeType.EXPLOSION);
+                                            landscapeRepository.save(ls.get());
+                                            break;
                                         } else {
                                             break;
                                         }
@@ -291,6 +306,33 @@ public class LabirinthServiceImpl implements LabirinthService {
         }
     }
 
+    private void modifyPlayer(UUID userId) {
+        int[][] array = new int[10][20];
+        List<Landscape> landscapes = landscapeRepository.findAllByUserId(userId);
+        for (Landscape l : landscapes) {
+            array[l.getI()][l.getJ()] = l.getType().getValue();
+        }
+        Optional<Hero> heroOptional = heroRepository.getByUserIdAndPlayerTrue(userId);
+        if (heroOptional.isPresent()) {
+            Hero hero = heroOptional.get();
+            int iHero = (int) Math.round(hero.getY() / 48.0);
+            int jHero = (int) Math.round(hero.getX() / 48.0);
+            List<Hero> enemies = heroRepository.getByUserIdAndPlayerFalse(userId);
+            for (int k = 0; k < enemies.size(); ++k) {
+                Hero enemy = enemies.get(k);
+                int i = (int) Math.round(enemy.getY() / 48.0);
+                int j = (int) Math.round(enemy.getX() / 48.0);
+                if (iHero == i && jHero == j) {
+                    heroRepository.delete(hero);
+                    break;
+                }
+            }
+            if (array[iHero][jHero] == 5) {
+                heroRepository.delete(hero);
+            }
+        }
+    }
+
     private void modifyEnemies(UUID userId) {
         int[][] array = new int[10][20];
         List<Landscape> landscapes = landscapeRepository.findAllByUserId(userId);
@@ -302,6 +344,7 @@ public class LabirinthServiceImpl implements LabirinthService {
             Hero enemy = enemies.get(k);
             int i = (int) Math.round(enemy.getY() / 48.0);
             int j = (int) Math.round(enemy.getX() / 48.0);
+
             if (enemy.getLeft()) {
                 if (j - 1 >= 0 &&
                         (
@@ -355,7 +398,11 @@ public class LabirinthServiceImpl implements LabirinthService {
                     enemy.setUp(true);
                 }
             }
-            heroRepository.save(enemy);
+            if (array[i][j] == 5) {
+                heroRepository.delete(enemy);
+            } else {
+                heroRepository.save(enemy);
+            }
         }
     }
 
